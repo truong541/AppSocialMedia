@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:socialnetwork/components/EditText.dart';
+import 'package:socialnetwork/components/edit_text.dart';
+import 'package:socialnetwork/components/responsive.dart';
 import 'package:socialnetwork/screens/navscreen.dart';
-import 'package:socialnetwork/widgets/widget_textstyle.dart';
+import 'package:socialnetwork/services/auth_service.dart';
+import 'package:socialnetwork/widgets/mytext.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,70 +16,58 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController fullnameController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+  String? _selectedGender = 'male';
   bool _isLoading = false;
   bool _isRegistered = false;
 
   Future<void> _register() async {
-    if (!_formKey.currentState!.validate()) return;
-
     setState(() {
       _isLoading = true;
     });
 
-    final response = await http.post(
-      Uri.parse('http://10.0.2.2:8000/account/register/'), // Thay URL backend
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'username': usernameController.text,
-        'email': emailController.text,
-        'password': passwordController.text,
-        'password2': confirmPasswordController.text,
-      }),
-    );
-
+    await AuthService().registerAccount({
+      'fullname': fullnameController.text,
+      'username': usernameController.text,
+      'gender': _selectedGender,
+      'email': emailController.text,
+      'password': passwordController.text,
+      'password2': confirmPasswordController.text
+    });
     setState(() {
       _isLoading = false;
+      _isRegistered = true;
     });
-
-    if (response.statusCode == 201) {
-      final data = jsonDecode(response.body);
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('access_token', data['access_token']);
-      await prefs.setString('refresh_token', data['refresh_token']);
-
-      setState(() {
-        _isRegistered = true;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Registration successful!')),
-      );
-    } else {
-      final error = jsonDecode(response.body);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error['error'] ?? 'Registration failed')),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Registration successful!')),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('ĐĂNG KÝ TÀI KHOẢN MỚI', style: MyTextstyle.textLarge_),
+        title: Text('ĐĂNG KÝ TÀI KHOẢN MỚI',
+            style: MyTextStyle.textLarge_(context)),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.all(10),
-          child: Form(
-            key: _formKey,
+      body: IndexResponsive(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(10),
             child: Column(
               children: [
+                EditText(
+                  controller: fullnameController,
+                  labelText: 'Fullname',
+                  radius: 30,
+                ),
                 SizedBox(height: 20),
                 EditText(
                   controller: usernameController,
@@ -85,9 +75,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   radius: 30,
                 ),
                 SizedBox(height: 20),
+                Column(
+                  children: [
+                    ListTile(
+                      title: Text('Nam'),
+                      leading: SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: Radio<String>(
+                          value: 'male',
+                          groupValue: _selectedGender,
+                          onChanged: (String? value) {
+                            setState(() {
+                              _selectedGender = value;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                    ListTile(
+                      title: Text('Nữ'),
+                      leading: SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: Radio<String>(
+                          value: 'female',
+                          groupValue: _selectedGender,
+                          onChanged: (String? value) {
+                            setState(() {
+                              _selectedGender = value;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20),
                 EditText(
                   controller: emailController,
                   labelText: 'Email address',
+                  keyboardType: TextInputType.emailAddress,
                   radius: 30,
                 ),
                 SizedBox(height: 20),
@@ -95,12 +123,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: passwordController,
                   labelText: 'Password',
                   radius: 30,
+                  obscureText: !_isPasswordVisible,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
                 ),
                 SizedBox(height: 20),
                 EditText(
                   controller: confirmPasswordController,
                   labelText: 'Re-enter password',
                   radius: 30,
+                  obscureText: !_isConfirmPasswordVisible,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isConfirmPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                      });
+                    },
+                  ),
                 ),
                 SizedBox(height: 20),
                 Padding(
@@ -108,15 +162,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: ElevatedButton(
                     onPressed: () async {
                       if (!_isRegistered) {
-                        await _register(); // Gọi API đăbbbng ký
+                        await _register();
                       }
-
-                      // Nếu đã đăng ký thành công, chuyển trang
                       if (_isRegistered) {
-                        Navigator.push(
+                        Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
                               builder: (context) => NavBottomScreen()),
+                          (Route<dynamic> route) => false,
                         );
                       }
                     },
@@ -127,7 +180,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ? CircularProgressIndicator(color: Colors.white)
                         : Text(
                             'Register',
-                            style: MyTextstyle.textMedium_White,
+                            style: MyTextStyle.textMediumWhite,
                           ),
                   ),
                 ),

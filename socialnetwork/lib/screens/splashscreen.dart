@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socialnetwork/screens/loginscreen.dart';
 import 'package:socialnetwork/screens/navscreen.dart';
 import 'package:socialnetwork/utils/gettoken.dart';
@@ -18,20 +17,24 @@ class _SplashScreenState extends State<SplashScreen> {
     _checkLoginStatus();
   }
 
-  // Kiểm tra xem người dùng đã đăng nhập hay chưa
+  // Kiểm tra trạng thái login của người dùng
   Future<void> _checkLoginStatus() async {
-    final token = await GetToken().getAccessToken();
+    final accessToken = await GetToken().getAccessToken();
 
-    // Kiểm tra xem token có tồn tại hay không
-    if (token != null) {
+    // Sử dụng Future.delayed để đợi trước khi điều hướng
+    await Future.delayed(
+        const Duration(seconds: 2)); // Tùy chọn, có thể là thời gian loading
+
+    // Điều hướng đến trang tương ứng
+    if (accessToken != null) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => NavBottomScreen()),
+        MaterialPageRoute(builder: (context) => const NavBottomScreen()),
       );
     } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => LoginScreen()),
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
     }
   }

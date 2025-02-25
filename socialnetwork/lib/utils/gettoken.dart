@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 
 class GetToken {
+  // Lấy access token
   Future<String?> getAccessToken() async {
     final prefs = await SharedPreferences.getInstance();
     final accessToken = prefs.getString('access_token');
@@ -22,6 +23,7 @@ class GetToken {
     }
   }
 
+  //Tạo mới access token
   Future<String?> _refreshAccessToken(String? refreshToken) async {
     if (refreshToken == null) {
       print('Không tìm thấy refresh token.');
@@ -53,6 +55,19 @@ class GetToken {
     }
   }
 
+  // Lấy id user từ access token
+  Future<int?> getUserIdFromToken() async {
+    final accessToken = await GetToken().getAccessToken();
+
+    if (accessToken == null || accessToken.isEmpty) {
+      return null;
+    }
+
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(accessToken);
+    return decodedToken['user_id'];
+  }
+
+  // Lấy thông tin user hiện tại
   Future<Map<String, dynamic>?> getUserCurrent() async {
     try {
       final token = await getAccessToken();

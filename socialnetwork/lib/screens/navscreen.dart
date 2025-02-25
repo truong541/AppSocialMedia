@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:socialnetwork/screens/accountscreen.dart';
-import 'package:socialnetwork/screens/notificationscreen.dart';
+import 'package:socialnetwork/screens/searchscreen.dart';
 import 'package:socialnetwork/screens/chatscreen.dart';
 import 'package:socialnetwork/screens/homescreen.dart';
 import 'package:socialnetwork/screens/postscreen.dart';
@@ -14,11 +13,12 @@ class NavBottomScreen extends StatefulWidget {
 }
 
 class _NavBottomScreenState extends State<NavBottomScreen> {
-  int _currentIndex = 4;
+  int _currentIndex = 0;
   double widthIcon = 20;
+
   final _pages = [
     Center(child: HomeScreen()),
-    Center(child: AccountScreen()),
+    Center(child: SearchScreen()),
     Center(child: Container()),
     Center(child: ChatScreen()),
     Center(child: ProfileScreen()),
@@ -66,10 +66,16 @@ class _NavBottomScreenState extends State<NavBottomScreen> {
       bottomNavigationBar: BottomNavigationBar(
         items: _navItems.map((item) {
           return BottomNavigationBarItem(
-            icon: Image.asset(
-              item['icon'],
-              width: widthIcon,
-              height: widthIcon,
+            icon: ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                Theme.of(context).colorScheme.onSurface, // Màu phủ lên
+                BlendMode.srcATop, // Chế độ hòa trộn
+              ),
+              child: Image.asset(
+                item['icon'],
+                width: widthIcon,
+                height: widthIcon,
+              ),
             ),
             activeIcon: ShaderMask(
               shaderCallback: (bounds) {

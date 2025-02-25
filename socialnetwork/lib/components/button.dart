@@ -119,6 +119,7 @@ class ButtonNormal extends StatelessWidget {
     return GestureDetector(
       onTap: onTapped,
       child: Container(
+        width: double.infinity,
         padding: EdgeInsets.symmetric(vertical: paddingVertical),
         decoration: BoxDecoration(
           color: bgColor,

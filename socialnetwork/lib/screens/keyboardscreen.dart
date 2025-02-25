@@ -19,7 +19,7 @@ class _KeyboardScreenState extends State<KeyboardScreen> {
     ['.', 'Space', '-', '\''],
   ];
 
-  TextEditingController _controller = TextEditingController();
+  TextEditingController controller = TextEditingController();
   bool isUppercase = false;
   Timer? _deleteTimer;
   final Map<String, bool> _pressedKeys = {};
@@ -59,23 +59,23 @@ class _KeyboardScreenState extends State<KeyboardScreen> {
   }
 
   void _onKeyPress(String key) {
-    final text = _controller.text;
-    final selection = _controller.selection;
+    final text = controller.text;
+    final selection = controller.selection;
     final cursorPos = selection.start;
 
     setState(() {
       if (key == '⌫') {
         if (cursorPos > 0) {
-          _controller.text =
+          controller.text =
               text.substring(0, cursorPos - 1) + text.substring(cursorPos);
-          _controller.selection = TextSelection.fromPosition(
+          controller.selection = TextSelection.fromPosition(
             TextPosition(offset: cursorPos - 1),
           );
         }
       } else if (key == 'Space') {
-        _controller.text =
+        controller.text =
             '${text.substring(0, cursorPos)} ${text.substring(cursorPos)}';
-        _controller.selection = TextSelection.fromPosition(
+        controller.selection = TextSelection.fromPosition(
           TextPosition(offset: cursorPos + 1),
         );
       } else if (key == '⇧') {
@@ -86,10 +86,10 @@ class _KeyboardScreenState extends State<KeyboardScreen> {
         final newChar = isUppercase ? key.toUpperCase() : key;
         final hasKey = allowedKeys.contains(key.toLowerCase());
         if (hasKey) {
-          _controller.text = text.substring(0, cursorPos) +
+          controller.text = text.substring(0, cursorPos) +
               newChar +
               text.substring(cursorPos);
-          _controller.selection = TextSelection.fromPosition(
+          controller.selection = TextSelection.fromPosition(
             TextPosition(offset: cursorPos + 1),
           );
           return;
@@ -133,7 +133,7 @@ class _KeyboardScreenState extends State<KeyboardScreen> {
                   children: [
                     Text(exampleText),
                     TextFormField(
-                      controller: _controller,
+                      controller: controller,
                       readOnly: true,
                       autofocus: true,
                       showCursor: true, // Hiện con trỏ

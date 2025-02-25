@@ -3,10 +3,8 @@ import 'package:socialnetwork/components/button.dart';
 import 'package:socialnetwork/screens/navscreen.dart';
 import 'package:socialnetwork/screens/registerscreen.dart';
 import 'package:socialnetwork/services/auth_service.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
-import 'package:socialnetwork/widgets/widget_textstyle.dart';
+import 'package:socialnetwork/widgets/mytext.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,8 +14,35 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  bool _isLoading = false;
+  String? _emailError;
+  String? _passwordError;
+
+  Future<void> handleLogin() async {
+    setState(() {
+      _emailError =
+          emailController.text.isEmpty ? "Email cannot be empty" : null;
+      _passwordError =
+          passwordController.text.isEmpty ? "Password cannot be empty" : null;
+    });
+    if (_emailError != null || _passwordError != null) return;
+    setState(() {
+      _isLoading = true;
+    });
+    await AuthService().loginAccount(
+        {"email": emailController.text, "password": passwordController.text});
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => NavBottomScreen()),
+      (Route<dynamic> route) => false,
+    );
+    setState(() {
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,76 +74,75 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 32),
-                    Form(
-                        key: _formKey,
-                        child: SingleChildScrollView(
-                            child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                              // Email Input
-                              TextFormField(
-                                decoration: InputDecoration(
-                                  labelText: 'Email',
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.email),
-                                ),
-                                keyboardType: TextInputType.emailAddress,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter your email';
-                                  }
-                                  if (!RegExp(r'^\S+@\S+\.\S+\$')
-                                      .hasMatch(value)) {
-                                    return 'Please enter a valid email';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: 16),
+                    SingleChildScrollView(
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                          TextFormField(
+                            controller: emailController,
+                            decoration: InputDecoration(
+                              labelText: 'Email',
+                              errorText: _emailError,
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.email),
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your email';
+                              }
+                              if (!RegExp(r'^\S+@\S+\.\S+\$').hasMatch(value)) {
+                                return 'Please enter a valid email';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
 
-                              // Password Input
-                              TextFormField(
-                                obscureText: !_isPasswordVisible,
-                                decoration: InputDecoration(
-                                  labelText: 'Password',
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.lock),
-                                  prefixIconColor: Color(0xFFFF5733),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _isPasswordVisible
-                                          ? Icons.visibility
-                                          : Icons.visibility_off,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        _isPasswordVisible =
-                                            !_isPasswordVisible;
-                                      });
-                                    },
-                                  ),
+                          // Password Input
+                          TextFormField(
+                            controller: passwordController,
+                            obscureText: !_isPasswordVisible,
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              errorText: _passwordError,
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.lock),
+                              prefixIconColor: Color(0xFFFF5733),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isPasswordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
                                 ),
-                              ),
-                              const SizedBox(height: 24),
-
-                              // Login Button
-                              ElevatedButton(
                                 onPressed: () {
-                                  // Handle login action
+                                  setState(() {
+                                    _isPasswordVisible = !_isPasswordVisible;
+                                  });
                                 },
-                                style: ElevatedButton.styleFrom(
-                                  minimumSize: Size(double.infinity, 48),
-                                ),
-                                child: Text('Login'),
                               ),
-                            ]))),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Login Button
+                          ElevatedButton(
+                            onPressed: handleLogin,
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: Size(double.infinity, 48),
+                            ),
+                            child: _isLoading
+                                ? CircularProgressIndicator(color: Colors.white)
+                                : Text('Login'),
+                          ),
+                        ])),
                     SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           'Nếu chưa có tài khoản?  ',
-                          style: MyTextstyle.textSmall,
+                          style: MyTextStyle.textSmall(context),
                         ),
                         ButtonText(
                           onTapped: () {

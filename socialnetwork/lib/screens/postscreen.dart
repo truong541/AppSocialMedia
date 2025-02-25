@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-// import 'package:dio/dio.dart';
-// import 'dart:convert';
+import 'package:intl/intl.dart';
 import 'dart:io';
-
 import 'package:socialnetwork/utils/gettoken.dart';
 
 class PostScreen extends StatefulWidget {
@@ -18,6 +16,9 @@ class _PostScreenState extends State<PostScreen> {
   final TextEditingController _contentController = TextEditingController();
   final List<XFile> _selectedImages = [];
   final ImagePicker _picker = ImagePicker();
+  String getCurrentTime() {
+    return DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
+  }
 
   Future<void> _pickImages() async {
     final List<XFile> images = await _picker.pickMultiImage();
@@ -36,6 +37,7 @@ class _PostScreenState extends State<PostScreen> {
       request.fields['user'] =
           resUser!['idUser'].toString(); // User ID (cho sẵn)
       request.fields['content'] = _contentController.text;
+      request.fields['createdAt'] = getCurrentTime();
 
       // Thêm từng ảnh vào request
       for (var image in _selectedImages) {
@@ -75,7 +77,7 @@ class _PostScreenState extends State<PostScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context); // Quay lại màn hình trước đó
+            Navigator.pop(context);
           },
         ),
       ),

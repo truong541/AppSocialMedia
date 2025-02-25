@@ -1,16 +1,16 @@
 from rest_framework import serializers
-from .models import User, Post, MediaData, Like, Comment, RespondComment
-# from django.db.models import Count
+from .models import User, Post, MediaData, Like
+from comment.models import Comment
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['idUser', 'username', 'profileImage']
+        fields = ['idUser', 'fullname', 'username', 'gender', 'bio', 'email', 'avatar']
 
 class MediaSerializer(serializers.ModelSerializer):
     class Meta:
         model = MediaData
-        fields = "__all__"
+        fields = ['idMedia', 'url', 'createdAt']
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -33,29 +33,29 @@ class PostSerializer(serializers.ModelSerializer):
         return post
 
 class ListPostSerializer(serializers.ModelSerializer):
-    user = UserSerializer()  # Lấy thông tin người dùng (idUser, username, profileImage)
+    user = UserSerializer()
     url = MediaSerializer(many=True, read_only=True)  # Lấy thông tin media liên quan
-    like_count = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField(read_only=True)
+    comment_count = serializers.SerializerMethodField(read_only=True)
+    isLiked = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Post
-        fields = ['idPost', 'user', 'content', 'like_count', 'url', 'createdAt']
+        fields = ['idPost', 'user', 'content', 'like_count', 'comment_count', 'isLiked', 'url', 'createdAt']
 
     def get_like_count(self, obj):
-        # Đếm số lượt like của bài post
         return Like.objects.filter(idPost=obj.idPost).count()
+    
+    def get_comment_count(self, obj):
+        return Comment.objects.filter(idPost=obj.idPost).count()
+    
+    def get_isLiked(self, obj):
+        request  = self.context.get('request')
+        return Like.objects.filter(idPost=obj, idUser=request.user).exists()
+    
 
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
-        fields = ['idLike', 'idPost', 'idUser', 'createdAt']
-
-class CommentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Comment
         fields = "__all__"
 
-class RespondCommentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RespondComment
-        fields = "__all__"

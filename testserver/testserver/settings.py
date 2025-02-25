@@ -29,9 +29,7 @@ SECRET_KEY = 'django-insecure-_*))sk$h4m9^ev-9+a9^#rz(3x1qvw&so-xzn_+zn2w5swt749
 DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', '10.0.2.2', '192.168.1.100', '192.168.1.2', '192.168.1.1', '0.0.0.0']
-# CSRF_TRUSTED_ORIGINS = ['127.0.0.1', '10.0.2.2', '192.168.1.100', '192.168.1.2','192.168.1.1','0.0.0.0']
-
-
+SITE_URL = "http://127.0.0.1:8000"  # Hoặc URL backend của bạn
 
 AUTH_USER_MODEL = 'account.User'
 CORS_ALLOW_ALL_ORIGINS = True
@@ -53,19 +51,21 @@ LOGGING = {
 # Application definition
 
 INSTALLED_APPS = [
-    
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'rest_framework',
     'rest_framework.authtoken',
+    'rest_framework_simplejwt',
     'corsheaders',
     'account',
+    'chat',
+    'comment',
     'post',
     'django.contrib.admin',
     'django.contrib.auth',
-
 ]
 
 REST_FRAMEWORK = {
@@ -76,18 +76,15 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
-        # 'rest_framework.permissions.IsAuthenticated',
     ],
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),  # Thời hạn của access token
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),    # Thời hạn của refresh token
-    'ROTATE_REFRESH_TOKENS': True,                  # Tái tạo refresh token mỗi lần làm mới
-    'BLACKLIST_AFTER_ROTATION': False,              # Không vô hiệu hóa refresh token cũ
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    'ROTATE_REFRESH_TOKENS': True,
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
-    'TOKEN_OBTAIN_SERIALIZER': 'accounts.serializers.CustomTokenObtainPairSerializer',
     'USER_ID_FIELD': 'idUser',
     'USER_ID_CLAIM': 'user_id', 
 }
@@ -97,6 +94,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -104,7 +102,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    
 ]
 
 ROOT_URLCONF = 'testserver.urls'
@@ -125,8 +123,18 @@ TEMPLATES = [
     },
 ]
 
+ASGI_APPLICATION = 'testserver.asgi.application'
 WSGI_APPLICATION = 'testserver.wsgi.application'
 
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases

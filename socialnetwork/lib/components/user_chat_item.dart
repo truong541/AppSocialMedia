@@ -1,67 +1,44 @@
 import 'package:flutter/material.dart';
-import 'package:socialnetwork/screens/listchatscreen.dart';
-import 'package:socialnetwork/utils/usercurrent.dart';
-import 'package:socialnetwork/widgets/widget_textstyle.dart';
+import 'package:socialnetwork/components/round_image.dart';
+import 'package:socialnetwork/models/chat_user.dart';
+import 'package:socialnetwork/widgets/mytext.dart';
 
 class UserChatItem extends StatefulWidget {
-  const UserChatItem({super.key});
+  final ChatUser user;
+  final VoidCallback onTap;
+  const UserChatItem({super.key, required this.user, required this.onTap});
 
   @override
   State<UserChatItem> createState() => _UserChatItemState();
 }
 
 class _UserChatItemState extends State<UserChatItem> {
-  UserCurrent userCurrent = UserCurrent();
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        // Thực hiện hành động khi nhấn vào item (chuyển sang màn hình chat)
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ListChatScreen()),
-        );
-      },
-      child: Container(
-        padding: EdgeInsets.all(10),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundImage: NetworkImage(
-                userCurrent.imageUrl, // Link hình đại diện
-              ),
+    return ListTile(
+      onTap: widget.onTap,
+      leading: RoundImage(image: widget.user.avatar),
+      title: Text(
+        MyTextStyle().toChangeVN(widget.user.fullname),
+        style: MyTextStyle.textMedium_(context),
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Row(
+        children: [
+          Expanded(
+            child: Text(
+              widget.user.lastMessage.image != null
+                  ? 'Đã gửi 1 hình ảnh'
+                  : widget.user.lastMessage.content,
+              style: MyTextStyle.textSmall(context),
+              overflow: TextOverflow.ellipsis,
             ),
-            SizedBox(width: 15),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                // crossAxisAlignment: ,
-                children: [
-                  Text(
-                    'Alina Versein',
-                    style: MyTextstyle.textMedium_,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    ' Mai mấy giờ họp vậy sếp? Mai mấy giờ họp vậy sếp?',
-                    style: MyTextstyle.textSmall,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '10:30 AM', // Hoặc trạng thái "Đang gõ..."
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+          Text(
+            MyTextStyle().getTimeAgo(widget.user.lastMessage.createdAt),
+            style: MyTextStyle.textSmallGrey,
+          ),
+        ],
       ),
     );
   }
